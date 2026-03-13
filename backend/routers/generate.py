@@ -3,7 +3,7 @@ import json
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from auth import verify_token
+from auth import verify_token_optional
 from models.schemas import CharacterSheetEvent, CharacterSheetRequest, PanelGenerationEvent, PanelGenerationRequest, StoryRequest, StoryResponse
 from services.gemini import generate_character_sheet, generate_panel, generate_story
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/generate", tags=["generate"])
 
 
 @router.post("/story", response_model=StoryResponse)
-async def create_story(request: StoryRequest, _user: dict = Depends(verify_token)):
+async def create_story(request: StoryRequest, _user: dict = Depends(verify_token_optional)):
     uid = _user.get("uid", "unknown")
     logger.info(f"[generate] POST /story from uid={uid} genre={request.genre} pages={request.page_count} prompt_len={len(request.prompt)}")
     try:
@@ -28,7 +28,7 @@ async def create_story(request: StoryRequest, _user: dict = Depends(verify_token
 @router.post("/character-sheets")
 async def create_character_sheets(
     request: CharacterSheetRequest,
-    _user: dict = Depends(verify_token),
+    _user: dict = Depends(verify_token_optional),
 ):
     uid = _user.get("uid", "unknown")
     logger.info(f"[generate] POST /character-sheets from uid={uid} characters={len(request.characters)}")
@@ -70,7 +70,7 @@ async def create_character_sheets(
 @router.post("/panels-stream")
 async def create_panels_stream(
     request: PanelGenerationRequest,
-    _user: dict = Depends(verify_token),
+    _user: dict = Depends(verify_token_optional),
 ):
     uid = _user.get("uid", "unknown")
     total_panels = sum(len(p.panels) for p in request.pages)

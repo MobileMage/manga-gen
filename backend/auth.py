@@ -20,12 +20,32 @@ elif not firebase_admin._apps:
     firebase_admin.initialize_app()
 
 bearer_scheme = HTTPBearer()
+bearer_scheme_optional = HTTPBearer(auto_error=False)
 
 
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> dict:
     """Verify Firebase ID token from Authorization header."""
+    try:
+        decoded = firebase_auth.verify_id_token(credentials.credentials)
+        logger.info(f"[auth] Token verified for uid={decoded.get('uid')}")
+        return decoded
+    except Exception as e:
+        logger.error(f"[auth] Token verification failed: {type(e).__name__}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+
+async def verify_token_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme_optional),
+) -> dict:
+    """Verify Firebase ID token if provided, otherwise return a demo user dict."""
+    if credentials is None or not credentials.credentials:
+        logger.info("[auth] Demo mode — no token provided")
+        return {"uid": "demo", "demo": True}
     try:
         decoded = firebase_auth.verify_id_token(credentials.credentials)
         logger.info(f"[auth] Token verified for uid={decoded.get('uid')}")
