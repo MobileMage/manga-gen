@@ -85,9 +85,7 @@ export default function ConceptPage() {
     }
   };
 
-  // Step-based rendering: show concept form, or completed summary for other steps
-  const showForm = currentStep === "concept";
-
+  // Step-based rendering
   if (currentStep === "characters") {
     return <CharactersStep />;
   }

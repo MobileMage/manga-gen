@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# enpitsu — Frontend
 
-## Getting Started
+Next.js 15 (App Router) frontend for the enpitsu AI manga generator.
 
-First, run the development server:
+## Tech
+
+- **Framework**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Auth**: Firebase (Google OAuth + email/password)
+- **Fonts**: DM Sans, Space Mono, Noto Sans JP
+- **PDF export**: html2canvas + jsPDF
+- **Animation**: Framer Motion
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `.env.local` in this directory:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
+```bash
+npm run dev      # Dev server at http://localhost:3000
+npm run build    # Production build
+npm run lint     # ESLint check
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── (app)/
+│   │   ├── layout.tsx      # App shell with TopBar + MangaProvider
+│   │   └── page.tsx        # ConceptPage — story generation
+│   └── login/
+│       └── page.tsx        # Auth page
+├── components/
+│   ├── TopBar.tsx          # Nav bar with step progress
+│   ├── CharactersStep.tsx  # Character sheet generation (SSE)
+│   ├── StoryboardStep.tsx  # Panel generation (SSE)
+│   ├── ReaderStep.tsx      # Manga reader + PDF export
+│   └── Toast.tsx
+├── contexts/
+│   ├── MangaContext.tsx    # Global state: story, sheets, panels, step
+│   └── AuthContext.tsx     # Firebase auth state
+└── lib/
+    ├── api.ts              # Fetch wrapper + SSE streaming helpers
+    ├── firebase.ts         # Firebase app init
+    ├── exportPdf.ts        # html2canvas + jsPDF export
+    ├── panelLayout.ts      # Manga panel grid layout
+    └── storyPrompts.ts     # Story idea templates
+```

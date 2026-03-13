@@ -217,6 +217,7 @@ function ReadOnlyPanelGrid({
             style={{ gridColumn: `span ${span}`, direction: "ltr" }}
           >
             {img?.status === "complete" && img.imageDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={img.imageDataUrl}
                 alt={`Page ${page.page_number}, Panel ${panel.panel_number}`}

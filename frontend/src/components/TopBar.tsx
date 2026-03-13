@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useManga, type Step } from "@/contexts/MangaContext";
 
@@ -21,13 +22,14 @@ export default function TopBar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3">
-        <div
+        <Link
+          href="/"
           className="text-xl font-black tracking-tight"
           style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
         >
           <span className="text-red-500">漫</span>
-          <span className="text-white">GEN</span>
-        </div>
+          <span className="text-white">enpitsu</span>
+        </Link>
         <div className="text-gray-600 text-xs">v0.1</div>
       </div>
 

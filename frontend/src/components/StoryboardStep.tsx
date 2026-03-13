@@ -467,6 +467,7 @@ function PanelGrid({
             style={{ gridColumn: `span ${span}` }}
           >
             {img?.status === "complete" && img.imageDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={img.imageDataUrl}
                 alt={`Panel ${panel.panel_number}`}

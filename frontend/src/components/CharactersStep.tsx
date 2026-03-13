@@ -15,7 +15,6 @@ export default function CharactersStep() {
     generatingSheets,
     setGeneratingSheets,
     updateCharacterSheet,
-    clearCharacterSheets,
     completeStep,
     setCurrentStep,
   } = useManga();
@@ -344,6 +343,7 @@ export default function CharactersStep() {
         ) : selectedSheet?.status === "complete" && selectedSheet.imageDataUrl ? (
           /* Complete state — show selected character's sheet */
           <div className="w-full max-w-4xl fade-up flex flex-col items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedSheet.imageDataUrl}
               alt={`${selectedCharacter} settei sheet`}
@@ -363,6 +363,7 @@ export default function CharactersStep() {
                         : "border-gray-700 hover:border-gray-500"
                     }`}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={sheet.imageDataUrl}
                       alt={name}

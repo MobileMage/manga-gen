@@ -77,11 +77,8 @@ export async function exportMangaPdf({
     // Lay out panels row by row
     let curCol = 0;
     let curRow = 0;
-    const rowHeights: number[] = [];
-
     // First pass: compute row count
     const panelPositions: { x: number; y: number; w: number; h: number }[] = [];
-    let rowStart = 0;
     const rowPanels: { span: number; index: number }[][] = [[]];
 
     for (let i = 0; i < panels.length; i++) {

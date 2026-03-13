@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   signInWithEmailAndPassword,
@@ -86,7 +87,7 @@ export default function LoginPage() {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
-      router.replace("/");
+      router.replace("/create");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "code" in err) {
         const message = getFirebaseErrorMessage(err as AuthError);
@@ -104,7 +105,7 @@ export default function LoginPage() {
     setFieldErrors({});
     try {
       await signInWithPopup(auth, googleProvider);
-      router.replace("/");
+      router.replace("/create");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "code" in err) {
         const message = getFirebaseErrorMessage(err as AuthError);
@@ -123,13 +124,14 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div
+          <Link
+            href="/"
             className="text-4xl font-black tracking-tight"
             style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
           >
             <span className="text-red-500">漫</span>
-            <span className="text-white">GEN</span>
-          </div>
+            <span className="text-white">enpitsu</span>
+          </Link>
           <p className="text-gray-500 text-sm mt-2">AI Manga Generator</p>
         </div>
 

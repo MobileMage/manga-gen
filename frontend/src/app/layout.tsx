@@ -22,8 +22,19 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "漫GEN — AI Manga Generator",
+  title: "enpitsu — AI Manga Generator",
   description: "Generate manga with AI powered by Gemini",
+  openGraph: {
+    title: "enpitsu — AI Manga Generator",
+    description: "Generate manga with AI powered by Gemini",
+    siteName: "enpitsu",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "enpitsu — AI Manga Generator",
+    description: "Generate manga with AI powered by Gemini",
+  },
 };
 
 export default function RootLayout({
