@@ -106,12 +106,14 @@ export default function StoryboardStep() {
 
       abortRef.current = new AbortController();
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch(`${BACKEND_URL}/api/generate/panels-stream`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({
           pages: story.pages,
           characters: story.characters,

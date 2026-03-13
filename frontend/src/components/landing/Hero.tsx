@@ -8,9 +8,10 @@ interface HeroProps {
   ctaHref: string;
   ctaLabel: string;
   showDemo?: boolean;
+  onDemoClick?: () => void;
 }
 
-export default function Hero({ ctaHref, ctaLabel, showDemo }: HeroProps) {
+export default function Hero({ ctaHref, ctaLabel, showDemo, onDemoClick }: HeroProps) {
   return (
     <section className="relative min-h-screen flex items-center pt-16">
       {/* Giant watermark kanji */}
@@ -72,14 +73,14 @@ export default function Hero({ ctaHref, ctaLabel, showDemo }: HeroProps) {
               </span>
             </Link>
             {showDemo && (
-              <Link
-                href="/demo"
+              <button
+                onClick={onDemoClick}
                 className="group flex items-center gap-2 px-8 py-3.5 border border-gray-700 hover:border-gray-500 rounded text-sm font-bold tracking-widest text-gray-300 hover:text-white transition-all"
                 style={{ fontFamily: "var(--font-space-mono)" }}
               >
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 LIVE DEMO
-              </Link>
+              </button>
             )}
           </div>
 

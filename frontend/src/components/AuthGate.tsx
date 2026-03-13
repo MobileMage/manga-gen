@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 export default function AuthGate({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isDemo } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isDemo) {
       router.replace("/login");
     }
-  }, [user, loading, router]);
+  }, [user, loading, isDemo, router]);
 
   if (loading) {
     return (
@@ -22,7 +22,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) return null;
+  if (!user && !isDemo) return null;
 
   return <>{children}</>;
 }

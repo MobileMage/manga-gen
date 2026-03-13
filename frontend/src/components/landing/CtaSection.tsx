@@ -8,9 +8,10 @@ interface CtaSectionProps {
   ctaHref: string;
   ctaLabel: string;
   showDemo?: boolean;
+  onDemoClick?: () => void;
 }
 
-export default function CtaSection({ ctaHref, ctaLabel, showDemo }: CtaSectionProps) {
+export default function CtaSection({ ctaHref, ctaLabel, showDemo, onDemoClick }: CtaSectionProps) {
   return (
     <section className="relative py-32 sm:py-40 overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
@@ -63,14 +64,14 @@ export default function CtaSection({ ctaHref, ctaLabel, showDemo }: CtaSectionPr
               </span>
             </Link>
             {showDemo && (
-              <Link
-                href="/demo"
+              <button
+                onClick={onDemoClick}
                 className="group flex items-center gap-2 px-10 py-4 border border-gray-600 hover:border-gray-400 rounded text-sm font-bold tracking-widest text-gray-400 hover:text-white transition-all"
                 style={{ fontFamily: "var(--font-space-mono)" }}
               >
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 LIVE DEMO
-              </Link>
+              </button>
             )}
           </div>
         </motion.div>

@@ -12,7 +12,7 @@ const STEPS: { id: Step; label: string }[] = [
 ];
 
 export default function TopBar() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isDemo } = useAuth();
   const { currentStep, setCurrentStep, completedSteps } = useManga();
 
   return (
@@ -66,16 +66,34 @@ export default function TopBar() {
 
       {/* User */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs text-gray-400">
-          {user?.email?.charAt(0).toUpperCase() ?? "?"}
-        </div>
-        <button
-          onClick={signOut}
-          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-          style={{ fontFamily: "var(--font-space-mono), monospace" }}
-        >
-          LOGOUT
-        </button>
+        {isDemo ? (
+          <>
+            <div className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold tracking-widest" style={{ fontFamily: "var(--font-space-mono), monospace" }}>
+              DEMO
+            </div>
+            <Link
+              href="/login"
+              onClick={signOut}
+              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              style={{ fontFamily: "var(--font-space-mono), monospace" }}
+            >
+              SIGN UP
+            </Link>
+          </>
+        ) : (
+          <>
+            <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs text-gray-400">
+              {user?.email?.charAt(0).toUpperCase() ?? "?"}
+            </div>
+            <button
+              onClick={signOut}
+              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              style={{ fontFamily: "var(--font-space-mono), monospace" }}
+            >
+              LOGOUT
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

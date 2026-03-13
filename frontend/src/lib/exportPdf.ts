@@ -14,6 +14,7 @@ interface ExportOptions {
   pages: PageScript[];
   panelImages: Map<string, PanelImage>;
   coverRef: HTMLElement;
+  direction?: "ltr" | "rtl";
 }
 
 export async function exportMangaPdf({
@@ -21,6 +22,7 @@ export async function exportMangaPdf({
   pages,
   panelImages,
   coverRef,
+  direction = "rtl",
 }: ExportOptions) {
   console.log("[export] Starting PDF export", { title, pageCount: pages.length, panelCount: panelImages.size });
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
@@ -97,8 +99,10 @@ export async function exportMangaPdf({
 
     // Second pass: compute positions
     for (let r = 0; r < rowPanels.length; r++) {
+      // For RTL, reverse the order of panels within each row
+      const row = direction === "rtl" ? [...rowPanels[r]].reverse() : rowPanels[r];
       let col = 0;
-      for (const { span, index } of rowPanels[r]) {
+      for (const { span, index } of row) {
         const x = MARGIN + col * (colW + GAP);
         const y = MARGIN + r * (rowH + GAP);
         const w = colW * span + GAP * (span - 1);

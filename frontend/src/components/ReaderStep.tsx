@@ -11,7 +11,7 @@ export default function ReaderStep() {
   const pages = story?.pages ?? [];
   const totalPages = pages.length;
   const [currentVisiblePage, setCurrentVisiblePage] = useState<"cover" | number>("cover");
-  const [direction, setDirection] = useState<"ltr" | "rtl">("ltr");
+  const [direction, setDirection] = useState<"ltr" | "rtl">("rtl");
   const [exporting, setExporting] = useState(false);
   const coverRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -56,13 +56,14 @@ export default function ReaderStep() {
         pages: story.pages,
         panelImages,
         coverRef: coverRef.current,
+        direction,
       });
     } catch (e) {
       console.error("[reader] PDF export failed:", e);
     } finally {
       setExporting(false);
     }
-  }, [story, panelImages]);
+  }, [story, panelImages, direction]);
 
   const pageLabel =
     currentVisiblePage === "cover"

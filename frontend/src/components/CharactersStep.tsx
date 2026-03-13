@@ -79,12 +79,14 @@ export default function CharactersStep() {
 
       abortRef.current = new AbortController();
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch(`${BACKEND_URL}/api/generate/character-sheets`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({
           characters: requestChars,
           style_hint: styleHint,
