@@ -3,7 +3,7 @@ import json
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from auth import verify_token
+from auth import verify_token_optional as verify_token
 from models.schemas import (
     CharacterSheetEvent, CharacterSheetRequest,
     PageGenerationEvent, PageGenerationRequest,
