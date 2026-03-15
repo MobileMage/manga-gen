@@ -9,6 +9,10 @@ import Toast from "@/components/Toast";
 import CharactersStep from "@/components/CharactersStep";
 import StoryboardStep from "@/components/StoryboardStep";
 import ReaderStep from "@/components/ReaderStep";
+import SketchToMangaStep from "@/components/SketchToMangaStep";
+import AutoModeToggle from "@/components/AutoModeToggle";
+import AutoModeOverlay from "@/components/AutoModeOverlay";
+import { useAutoMode } from "@/hooks/useAutoMode";
 import type { StoryResponse } from "@/contexts/MangaContext";
 
 const genres = [
@@ -36,10 +40,13 @@ export default function ConceptPage() {
     currentStep,
     completeStep,
     setCurrentStep,
+    mode,
   } = useManga();
   const { getToken } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const dismissError = useCallback(() => setError(null), []);
+
+  useAutoMode();
 
   const canGenerate = prompt.trim().length >= MIN_PROMPT_LENGTH && !generating;
 
@@ -85,7 +92,12 @@ export default function ConceptPage() {
     }
   };
 
-  // Step-based rendering
+  // Sketch mode: render sketch-to-manga interface
+  if (mode === "sketch") {
+    return <SketchToMangaStep />;
+  }
+
+  // Step-based rendering: show concept form, or completed summary for other steps
   if (currentStep === "characters") {
     return <CharactersStep />;
   }
@@ -136,7 +148,7 @@ export default function ConceptPage() {
         <button
           onClick={handleRandom}
           disabled={generating}
-          className="w-full mb-5 py-2.5 rounded-lg border-2 border-dashed border-gray-700 hover:border-red-500/50 hover:bg-red-500/5 text-sm text-gray-400 hover:text-red-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full mb-3 py-2.5 rounded-lg border-2 border-dashed border-gray-700 hover:border-red-500/50 hover:bg-red-500/5 text-sm text-gray-400 hover:text-red-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           style={{ fontFamily: "var(--font-space-mono), monospace" }}
         >
           <span className="text-base">🎲</span> RANDOM IDEA
@@ -222,6 +234,11 @@ export default function ConceptPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Auto mode toggle */}
+        <div className="mb-4">
+          <AutoModeToggle />
         </div>
 
         <button
@@ -311,6 +328,7 @@ export default function ConceptPage() {
       </div>
 
       <Toast message={error} onDismiss={dismissError} />
+      <AutoModeOverlay />
     </div>
   );
 }

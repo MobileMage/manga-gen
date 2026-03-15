@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useManga, type PanelImage, type PageScript } from "@/contexts/MangaContext";
-import { panelKey, getPanelGridStyle } from "@/lib/panelLayout";
+import { useManga } from "@/contexts/MangaContext";
 import { exportMangaPdf } from "@/lib/exportPdf";
 
 export default function ReaderStep() {
-  const { story, panelImages } = useManga();
+  const { story, pageImages } = useManga();
 
   const pages = story?.pages ?? [];
   const totalPages = pages.length;
   const [currentVisiblePage, setCurrentVisiblePage] = useState<"cover" | number>("cover");
-  const [direction, setDirection] = useState<"ltr" | "rtl">("rtl");
   const [exporting, setExporting] = useState(false);
   const coverRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -54,16 +52,15 @@ export default function ReaderStep() {
       await exportMangaPdf({
         title: story.title,
         pages: story.pages,
-        panelImages,
+        pageImages,
         coverRef: coverRef.current,
-        direction,
       });
     } catch (e) {
       console.error("[reader] PDF export failed:", e);
     } finally {
       setExporting(false);
     }
-  }, [story, panelImages, direction]);
+  }, [story, pageImages]);
 
   const pageLabel =
     currentVisiblePage === "cover"
@@ -93,17 +90,8 @@ export default function ReaderStep() {
           {pageLabel}
         </span>
 
-        {/* Right: RTL toggle + Export */}
+        {/* Right: Export */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setDirection((d) => (d === "ltr" ? "rtl" : "ltr"))}
-            className="px-2.5 py-1 rounded border border-gray-700 text-xs text-gray-400 hover:text-white hover:border-gray-500 transition-all"
-            style={{ fontFamily: "var(--font-space-mono), monospace" }}
-            title={direction === "ltr" ? "Switch to RTL (right-to-left)" : "Switch to LTR (left-to-right)"}
-          >
-            {direction === "ltr" ? "LTR" : "RTL"}
-          </button>
-
           <button
             onClick={handleExport}
             disabled={exporting}
@@ -126,7 +114,7 @@ export default function ReaderStep() {
             ref={coverRef}
             data-page="cover"
             className="bg-white rounded shadow-2xl w-full max-w-lg flex flex-col items-center justify-center px-8"
-            style={{ aspectRatio: "7/10" }}
+            style={{ aspectRatio: "2/3" }}
           >
             {story && (
               <div className="text-center">
@@ -155,25 +143,32 @@ export default function ReaderStep() {
           </div>
 
           {/* Manga pages */}
-          {pages.map((page) => (
-            <div
-              key={page.page_number}
-              ref={(el) => {
-                if (el) pageRefs.current.set(String(page.page_number), el);
-              }}
-              data-page={page.page_number}
-              className="bg-white rounded shadow-2xl w-full max-w-lg"
-              style={{ aspectRatio: "7/10" }}
-            >
-              <div className="w-full h-full p-1.5">
-                <ReadOnlyPanelGrid
-                  page={page}
-                  panelImages={panelImages}
-                  direction={direction}
-                />
+          {pages.map((page) => {
+            const img = pageImages.get(page.page_number);
+            return (
+              <div
+                key={page.page_number}
+                ref={(el) => {
+                  if (el) pageRefs.current.set(String(page.page_number), el);
+                }}
+                data-page={page.page_number}
+                className="bg-white rounded shadow-2xl w-full max-w-lg overflow-hidden"
+                style={{ aspectRatio: "2/3" }}
+              >
+                {img?.status === "complete" && img.imageDataUrl ? (
+                  <img
+                    src={img.imageDataUrl}
+                    alt={`Page ${page.page_number}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin" />
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* End spacer */}
           <div
@@ -184,54 +179,6 @@ export default function ReaderStep() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Read-only panel grid — same layout as StoryboardStep but non-interactive */
-function ReadOnlyPanelGrid({
-  page,
-  panelImages,
-  direction,
-}: {
-  page: PageScript;
-  panelImages: Map<string, PanelImage>;
-  direction: "ltr" | "rtl";
-}) {
-  const panels = page.panels;
-  const { gridTemplateColumns, spans } = getPanelGridStyle(panels.length);
-
-  return (
-    <div
-      className="grid gap-0.5 w-full h-full"
-      style={{ gridTemplateColumns, direction }}
-    >
-      {panels.map((panel, i) => {
-        const key = panelKey(page.page_number, panel.panel_number);
-        const img = panelImages.get(key);
-        const span = spans[i] ?? 1;
-
-        return (
-          <div
-            key={key}
-            className="relative overflow-hidden border border-black"
-            style={{ gridColumn: `span ${span}`, direction: "ltr" }}
-          >
-            {img?.status === "complete" && img.imageDataUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={img.imageDataUrl}
-                alt={`Page ${page.page_number}, Panel ${panel.panel_number}`}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin" />
-              </div>
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }

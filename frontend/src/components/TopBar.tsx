@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useManga, type Step } from "@/contexts/MangaContext";
 
@@ -12,8 +11,8 @@ const STEPS: { id: Step; label: string }[] = [
 ];
 
 export default function TopBar() {
-  const { user, signOut, isDemo } = useAuth();
-  const { currentStep, setCurrentStep, completedSteps } = useManga();
+  const { user, signOut } = useAuth();
+  const { currentStep, setCurrentStep, completedSteps, mode, setMode, autoMode, autoPaused, setAutoPaused } = useManga();
 
   return (
     <div
@@ -22,78 +21,110 @@ export default function TopBar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3">
-        <Link
-          href="/"
+        <div
           className="text-xl font-black tracking-tight"
           style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
         >
           <span className="text-red-500">漫</span>
-          <span className="text-white">enpitsu</span>
-        </Link>
-        <div className="text-gray-600 text-xs">v0.1</div>
+          <span className="text-white">GEN</span>
+        </div>
+        <div className="text-gray-600 text-xs">v0.2</div>
       </div>
 
-      {/* Step navigation */}
-      <div className="flex items-center gap-1">
-        {STEPS.map((s, i) => {
-          const isActive = s.id === currentStep;
-          const isCompleted = completedSteps.has(s.id);
-          const isEnabled = isActive || isCompleted;
+      {/* Center: Mode toggle + Step navigation */}
+      <div className="flex items-center gap-4">
+        {/* Mode toggle */}
+        <div className="flex items-center border border-gray-700 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setMode("story")}
+            className={`px-3 py-1.5 text-xs font-medium transition-all ${
+              mode === "story"
+                ? "bg-red-500 text-white"
+                : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
+            style={{ fontFamily: "var(--font-space-mono), monospace" }}
+          >
+            STORY
+          </button>
+          <button
+            onClick={() => setMode("sketch")}
+            className={`px-3 py-1.5 text-xs font-medium transition-all ${
+              mode === "sketch"
+                ? "bg-red-500 text-white"
+                : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
+            style={{ fontFamily: "var(--font-space-mono), monospace" }}
+          >
+            SKETCH
+          </button>
+        </div>
 
-          return (
-            <button
-              key={s.id}
-              disabled={!isEnabled}
-              onClick={() => {
-                if (!isEnabled) return;
-                console.log("[topbar] Navigate to step:", s.id);
-                setCurrentStep(s.id);
-              }}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                isActive
-                  ? "bg-red-500 text-white"
-                  : isCompleted
-                    ? "text-gray-300 hover:text-white hover:bg-gray-800"
-                    : "text-gray-700 cursor-not-allowed"
+        {/* Step navigation (story mode only) */}
+        {mode === "story" && (
+          <div className="flex items-center gap-1">
+            {STEPS.map((s, i) => {
+              const isActive = s.id === currentStep;
+              const isCompleted = completedSteps.has(s.id);
+              const isEnabled = isActive || isCompleted;
+
+              return (
+                <button
+                  key={s.id}
+                  disabled={!isEnabled}
+                  onClick={() => {
+                    if (!isEnabled) return;
+                    setCurrentStep(s.id);
+                  }}
+                  className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-red-500 text-white"
+                      : isCompleted
+                        ? "text-gray-300 hover:text-white hover:bg-gray-800"
+                        : "text-gray-700 cursor-not-allowed"
+                  }`}
+                  style={{ fontFamily: "var(--font-space-mono), monospace" }}
+                >
+                  {String(i + 1).padStart(2, "0")}. {s.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Right: Auto badge + User */}
+      <div className="flex items-center gap-3">
+        {autoMode && (
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${
+                autoPaused
+                  ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                  : "bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse"
               }`}
               style={{ fontFamily: "var(--font-space-mono), monospace" }}
             >
-              {String(i + 1).padStart(2, "0")}. {s.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* User */}
-      <div className="flex items-center gap-3">
-        {isDemo ? (
-          <>
-            <div className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold tracking-widest" style={{ fontFamily: "var(--font-space-mono), monospace" }}>
-              DEMO
-            </div>
-            <Link
-              href="/login"
-              onClick={signOut}
-              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-              style={{ fontFamily: "var(--font-space-mono), monospace" }}
-            >
-              SIGN UP
-            </Link>
-          </>
-        ) : (
-          <>
-            <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs text-gray-400">
-              {user?.email?.charAt(0).toUpperCase() ?? "?"}
-            </div>
+              {autoPaused ? "PAUSED" : "AUTO"}
+            </span>
             <button
-              onClick={signOut}
-              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              onClick={() => setAutoPaused(!autoPaused)}
+              className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
               style={{ fontFamily: "var(--font-space-mono), monospace" }}
             >
-              LOGOUT
+              {autoPaused ? "RESUME" : "PAUSE"}
             </button>
-          </>
+          </div>
         )}
+        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs text-gray-400">
+          {user?.email?.charAt(0).toUpperCase() ?? "?"}
+        </div>
+        <button
+          onClick={signOut}
+          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          style={{ fontFamily: "var(--font-space-mono), monospace" }}
+        >
+          LOGOUT
+        </button>
       </div>
     </div>
   );

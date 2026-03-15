@@ -3,4 +3,3 @@ uvicorn[standard]
 firebase-admin
 google-genai
 python-dotenv
-livekit-api

@@ -62,3 +62,43 @@ class PanelGenerationEvent(BaseModel):
     image_base64: str
     status: str  # "complete" | "error"
     error_message: str
+
+
+class PageGenerationRequest(BaseModel):
+    pages: list[PageScript]
+    characters: list[Character]
+    character_sheets: dict[str, str]  # name -> base64 PNG
+    genre: str
+    style_prompt: str
+
+
+class PageGenerationEvent(BaseModel):
+    page_number: int
+    image_base64: str
+    status: str  # "complete" | "error"
+    error_message: str
+
+
+class CharacterExtractResponse(BaseModel):
+    characters: list[Character]
+
+
+class SketchToMangaRequest(BaseModel):
+    sketch_images: list[str]              # base64 PNG/JPG
+    style_hint: str = ""
+    genre: str = ""
+    include_dialogue: bool = False
+    dialogue_hints: str = ""
+    auto_extract: bool = True             # run character extraction phase
+    reference_images: dict[str, str] = {} # name -> base64 (user-uploaded settei)
+
+
+class SketchToMangaStreamEvent(BaseModel):
+    phase: str                                    # "extract" | "settei" | "convert"
+    characters: list[Character] | None = None     # phase=extract
+    character_name: str | None = None             # phase=settei
+    settei_base64: str | None = None              # phase=settei
+    image_index: int | None = None                # phase=convert
+    image_base64: str | None = None               # phase=convert
+    status: str                                   # "complete" | "error" | "skipped"
+    error_message: str = ""

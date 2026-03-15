@@ -37,15 +37,15 @@ export interface CharacterSheet {
   errorMessage?: string;
 }
 
-export interface PanelImage {
+export interface PageImage {
   pageNumber: number;
-  panelNumber: number;
   imageDataUrl: string;
   status: "pending" | "generating" | "complete" | "error";
   errorMessage?: string;
 }
 
 export type Step = "concept" | "characters" | "storyboard" | "reader";
+export type AppMode = "story" | "sketch";
 
 interface MangaContextValue {
   genre: string;
@@ -68,11 +68,17 @@ interface MangaContextValue {
   setGeneratingSheets: (g: boolean) => void;
   updateCharacterSheet: (name: string, partial: Partial<CharacterSheet>) => void;
   clearCharacterSheets: () => void;
-  panelImages: Map<string, PanelImage>;
-  generatingPanels: boolean;
-  setGeneratingPanels: (g: boolean) => void;
-  updatePanelImage: (key: string, partial: Partial<PanelImage>) => void;
-  clearPanelImages: () => void;
+  pageImages: Map<number, PageImage>;
+  generatingPages: boolean;
+  setGeneratingPages: (g: boolean) => void;
+  updatePageImage: (pageNumber: number, partial: Partial<PageImage>) => void;
+  clearPageImages: () => void;
+  mode: AppMode;
+  setMode: (m: AppMode) => void;
+  autoMode: boolean;
+  setAutoMode: (a: boolean) => void;
+  autoPaused: boolean;
+  setAutoPaused: (p: boolean) => void;
 }
 
 const MangaContext = createContext<MangaContextValue | null>(null);
@@ -83,12 +89,15 @@ export function MangaProvider({ children }: { children: ReactNode }) {
   const [pageCount, setPageCount] = useState(4);
   const [generating, setGenerating] = useState(false);
   const [story, setStory] = useState<StoryResponse | null>(null);
-  const [currentStep, setCurrentStep] = useState<Step>("concept");
+  const [currentStep, setCurrentStepRaw] = useState<Step>("concept");
   const [completedSteps, setCompletedSteps] = useState<Set<Step>>(new Set());
   const [characterSheets, setCharacterSheets] = useState<Map<string, CharacterSheet>>(new Map());
   const [generatingSheets, setGeneratingSheets] = useState(false);
-  const [panelImages, setPanelImages] = useState<Map<string, PanelImage>>(new Map());
-  const [generatingPanels, setGeneratingPanels] = useState(false);
+  const [pageImages, setPageImages] = useState<Map<number, PageImage>>(new Map());
+  const [generatingPages, setGeneratingPages] = useState(false);
+  const [mode, setMode] = useState<AppMode>("story");
+  const [autoMode, setAutoMode] = useState(false);
+  const [autoPaused, setAutoPaused] = useState(false);
 
   const updateCharacterSheet = useCallback((name: string, partial: Partial<CharacterSheet>) => {
     setCharacterSheets((prev) => {
@@ -103,18 +112,28 @@ export function MangaProvider({ children }: { children: ReactNode }) {
     setCharacterSheets(new Map());
   }, []);
 
-  const updatePanelImage = useCallback((key: string, partial: Partial<PanelImage>) => {
-    setPanelImages((prev) => {
+  const updatePageImage = useCallback((pageNumber: number, partial: Partial<PageImage>) => {
+    setPageImages((prev) => {
       const next = new Map(prev);
-      const existing = next.get(key) ?? { pageNumber: 0, panelNumber: 0, imageDataUrl: "", status: "pending" as const };
-      next.set(key, { ...existing, ...partial });
+      const existing = next.get(pageNumber) ?? { pageNumber, imageDataUrl: "", status: "pending" as const };
+      next.set(pageNumber, { ...existing, ...partial });
       return next;
     });
   }, []);
 
-  const clearPanelImages = useCallback(() => {
-    setPanelImages(new Map());
+  const clearPageImages = useCallback(() => {
+    setPageImages(new Map());
   }, []);
+
+  const setCurrentStep = (next: Step) => {
+    // Mark the step we're leaving as completed so we can navigate back to it
+    setCurrentStepRaw((prev) => {
+      if (prev !== next) {
+        setCompletedSteps((cs) => new Set(cs).add(prev));
+      }
+      return next;
+    });
+  };
 
   const completeStep = (step: Step) => {
     setCompletedSteps((prev) => new Set(prev).add(step));
@@ -126,12 +145,14 @@ export function MangaProvider({ children }: { children: ReactNode }) {
     setPageCount(4);
     setGenerating(false);
     setStory(null);
-    setCurrentStep("concept");
+    setCurrentStepRaw("concept");
     setCompletedSteps(new Set());
     setCharacterSheets(new Map());
     setGeneratingSheets(false);
-    setPanelImages(new Map());
-    setGeneratingPanels(false);
+    setPageImages(new Map());
+    setGeneratingPages(false);
+    setAutoMode(false);
+    setAutoPaused(false);
   };
 
   return (
@@ -157,11 +178,17 @@ export function MangaProvider({ children }: { children: ReactNode }) {
         setGeneratingSheets,
         updateCharacterSheet,
         clearCharacterSheets,
-        panelImages,
-        generatingPanels,
-        setGeneratingPanels,
-        updatePanelImage,
-        clearPanelImages,
+        pageImages,
+        generatingPages,
+        setGeneratingPages,
+        updatePageImage,
+        clearPageImages,
+        mode,
+        setMode,
+        autoMode,
+        setAutoMode,
+        autoPaused,
+        setAutoPaused,
       }}
     >
       {children}

@@ -3,10 +3,8 @@
 import { useState, useCallback, useRef } from "react";
 import { useManga, type CharacterSheet } from "@/contexts/MangaContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { generateCharacterSheets } from "@/lib/generatePipeline";
 import Toast from "@/components/Toast";
-
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 
 export default function CharactersStep() {
   const {
@@ -15,6 +13,7 @@ export default function CharactersStep() {
     generatingSheets,
     setGeneratingSheets,
     updateCharacterSheet,
+    clearCharacterSheets,
     completeStep,
     setCurrentStep,
   } = useManga();
@@ -64,101 +63,39 @@ export default function CharactersStep() {
 
     try {
       const token = await getToken();
-
-      // Build request body with edited descriptions
-      const requestChars = charsToGenerate.map((c) => ({
-        name: c.name,
-        role: c.role,
-        visual_description: editedDescriptions[c.name] ?? c.visual_description,
-        personality: c.personality,
-      }));
-
-      const styleHint = story
-        ? `Manga style, genre: ${story.title}`
-        : "Manga style";
-
       abortRef.current = new AbortController();
 
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch(`${BACKEND_URL}/api/generate/character-sheets`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          characters: requestChars,
-          style_hint: styleHint,
-        }),
+      await generateCharacterSheets({
+        characters: charsToGenerate,
+        editedDescriptions,
+        storyTitle: story?.title,
+        token,
         signal: abortRef.current.signal,
+        callbacks: {
+          onSheetComplete: (name, imageDataUrl) => {
+            updateCharacterSheet(name, {
+              status: "complete",
+              imageDataUrl,
+              errorMessage: undefined,
+            });
+            setSelectedCharacter((prev) => {
+              const prevSheet = characterSheets.get(prev);
+              if (!prevSheet || prevSheet.status !== "complete") {
+                return name;
+              }
+              return prev;
+            });
+          },
+          onSheetError: (name, errorMessage) => {
+            updateCharacterSheet(name, { status: "error", errorMessage });
+            setError(`Failed to generate sheet for ${name}`);
+          },
+        },
       });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status}: ${text}`);
-      }
-
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error("No response body");
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data: ")) continue;
-          const payload = trimmed.slice(6);
-
-          if (payload === "[DONE]") break;
-
-          try {
-            const event = JSON.parse(payload) as {
-              character_name: string;
-              image_base64: string;
-              status: string;
-              error_message: string;
-            };
-
-            if (event.status === "complete") {
-              updateCharacterSheet(event.character_name, {
-                status: "complete",
-                imageDataUrl: `data:image/png;base64,${event.image_base64}`,
-                errorMessage: undefined,
-              });
-              // Auto-select first completed character
-              setSelectedCharacter((prev) => {
-                const prevSheet = characterSheets.get(prev);
-                if (!prevSheet || prevSheet.status !== "complete") {
-                  return event.character_name;
-                }
-                return prev;
-              });
-            } else {
-              updateCharacterSheet(event.character_name, {
-                status: "error",
-                errorMessage: event.error_message,
-              });
-              setError(`Failed to generate sheet for ${event.character_name}`);
-            }
-          } catch {
-            // Skip malformed JSON lines
-          }
-        }
-      }
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setError(msg);
-      // Mark remaining generating chars as error
       charsToGenerate.forEach((c) => {
         const sheet = characterSheets.get(c.name);
         if (sheet?.status === "generating") {
@@ -345,7 +282,6 @@ export default function CharactersStep() {
         ) : selectedSheet?.status === "complete" && selectedSheet.imageDataUrl ? (
           /* Complete state — show selected character's sheet */
           <div className="w-full max-w-4xl fade-up flex flex-col items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedSheet.imageDataUrl}
               alt={`${selectedCharacter} settei sheet`}
@@ -365,7 +301,6 @@ export default function CharactersStep() {
                         : "border-gray-700 hover:border-gray-500"
                     }`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={sheet.imageDataUrl}
                       alt={name}
