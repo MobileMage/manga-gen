@@ -24,7 +24,7 @@ export async function generateStory(params: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ genre, prompt, page_count: pageCount }),
     signal,
@@ -74,7 +74,7 @@ export async function generateCharacterSheets(params: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ characters: requestChars, style_hint: styleHint }),
     signal,
@@ -129,7 +129,7 @@ export async function generatePages(params: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({
       pages: story.pages,
