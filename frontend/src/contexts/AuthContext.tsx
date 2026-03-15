@@ -37,7 +37,12 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(false);
+  const [isDemo, setIsDemo] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("demo") === "1";
+    }
+    return false;
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -49,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     if (isDemo) {
+      sessionStorage.removeItem("demo");
       setIsDemo(false);
       return;
     }
@@ -61,8 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user.getIdToken();
   };
 
-  const enterDemoMode = () => setIsDemo(true);
-  const exitDemoMode = () => setIsDemo(false);
+  const enterDemoMode = () => {
+    sessionStorage.setItem("demo", "1");
+    setIsDemo(true);
+  };
+  const exitDemoMode = () => {
+    sessionStorage.removeItem("demo");
+    setIsDemo(false);
+  };
 
   return (
     <AuthContext.Provider value={{ user, loading, isDemo, signOut, getToken, enterDemoMode, exitDemoMode }}>
