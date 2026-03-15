@@ -26,7 +26,7 @@ export default function TopBar() {
           style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
         >
           <span className="text-red-500">漫</span>
-          <span className="text-white">GEN</span>
+          <span className="text-white">enpitsu</span>
         </div>
         <div className="text-gray-600 text-xs">v0.2</div>
       </div>
