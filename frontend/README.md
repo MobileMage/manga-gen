@@ -1,10 +1,10 @@
 # enpitsu — Frontend
 
-Next.js 15 (App Router) frontend for the enpitsu AI manga generator.
+Next.js 16 (App Router) frontend for the enpitsu AI manga generator.
 
 ## Tech
 
-- **Framework**: Next.js 15, React 19, TypeScript
+- **Framework**: Next.js 16, React 19, TypeScript
 - **Styling**: Tailwind CSS 4
 - **Auth**: Firebase (Google OAuth + email/password)
 - **Fonts**: DM Sans, Space Mono, Noto Sans JP

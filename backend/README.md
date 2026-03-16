@@ -39,6 +39,26 @@ uvicorn main:app --reload
 # Docs at http://localhost:8000/docs
 ```
 
+## Google Cloud Deployment
+
+The backend is deployed on **Google Cloud Run** (`us-central1`):
+
+```
+Service:  manga-gen-api
+Region:   us-central1
+URL:      https://manga-gen-api-300247487683.us-central1.run.app
+Scaling:  Auto (min: 0, max: 3)
+```
+
+To deploy a new revision:
+
+```bash
+gcloud run deploy manga-gen-api \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
 ## API Endpoints
 
 | Method | Path | Description |
@@ -73,6 +93,6 @@ backend/
 
 1. `gemini-3.1-flash-image-preview`
 2. `gemini-3-pro-image-preview`
-3. `gemini-2.5-flash-preview-image`
+3. `gemini-2.5-flash-image`
 
 If all three fail, the endpoint returns an error for that character/panel.

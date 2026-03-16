@@ -1,5 +1,9 @@
 # 漫 enpitsu — AI Manga Generator
 
+**[Live Demo → https://manga-gen.onrender.com](https://manga-gen.onrender.com)**
+
+> **Hackathon category:** Creative Storyteller — Gemini Live Agent Challenge
+
 enpitsu (鉛筆, "pencil") is an AI-powered manga creation tool. Give it a genre and a prompt, and it generates a full manga: story, character design sheets, and panel-by-panel artwork — all streamed live in your browser.
 
 ## How It Works
@@ -13,8 +17,41 @@ The generation pipeline has four steps:
 
 ## Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Firebase Auth
-- **Backend**: FastAPI + Uvicorn, Google Gemini API (`google-genai`), Firebase Admin SDK
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Firebase Auth
+- **Backend**: FastAPI + Uvicorn, Google Gemini API (`google-genai` SDK), Firebase Admin SDK
+- **Cloud**: Backend hosted on **Google Cloud Run** (`us-central1`); Gemini API (text + image generation)
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        User Browser                             │
+│  Next.js 16 frontend (Render)                                   │
+│  Firebase Auth (Google OAuth)                                   │
+└──────────────────┬──────────────────────────────────────────────┘
+                   │  HTTPS + Firebase ID token
+                   ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Google Cloud Run  (us-central1)                    │
+│              FastAPI backend  (manga-gen-api)                   │
+│                                                                 │
+│  POST /api/generate/story     ──► Gemini 2.5 Flash (text)       │
+│  POST /api/generate/character-sheets (SSE) ─► Gemini image      │
+│  POST /api/panels-stream (SSE)         ──► Gemini image         │
+│                                                                 │
+│  Auth: firebase-admin verifies ID tokens                        │
+└──────────────────┬──────────────────────────────────────────────┘
+                   │  google-genai SDK
+                   ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Google AI — Gemini API                                         │
+│  Text:  gemini-2.5-flash                                        │
+│  Image fallback chain:                                          │
+│    1. gemini-3.1-flash-image-preview                            │
+│    2. gemini-3-pro-image-preview                                │
+│    3. gemini-2.5-flash-image                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
