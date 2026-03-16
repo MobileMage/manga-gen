@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import random
 from google import genai
 from google.genai.types import GenerateContentConfig, ImageConfig
@@ -38,12 +39,11 @@ async def _with_retry(make_coro, label: str, max_retries: int = 4, base_delay: f
 def _get_client() -> genai.Client:
     global _client
     if _client is None:
-        logger.info("[gemini] Initializing Vertex AI client")
-        _client = genai.Client(
-            vertexai=True,
-            project="enpitsu-6649e",
-            location="us-central1",
-        )
+        api_key = os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            raise RuntimeError("GOOGLE_API_KEY environment variable is not set")
+        logger.info("[gemini] Initializing client")
+        _client = genai.Client(api_key=api_key)
     return _client
 
 

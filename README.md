@@ -16,8 +16,8 @@ The generation pipeline has four steps:
 ## Stack
 
 - **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Firebase Auth
-- **Backend**: FastAPI + Uvicorn, Google Gemini via **Vertex AI** (`google-genai` SDK), Firebase Admin SDK
-- **Cloud**: Backend hosted on **Google Cloud Run** (`us-central1`); Vertex AI for Gemini text + image generation
+- **Backend**: FastAPI + Uvicorn, Google Gemini API (`google-genai` SDK), Firebase Admin SDK
+- **Cloud**: Backend hosted on **Google Cloud Run** (`us-central1`)
 
 ## Architecture
 
@@ -42,7 +42,7 @@ The generation pipeline has four steps:
                    │  google-genai SDK
                    ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Google Vertex AI — Gemini API                                  │
+│  Google Gemini API                                              │
 │  Text:  gemini-2.5-flash                                        │
 │  Image fallback chain:                                          │
 │    1. gemini-3.1-flash-image-preview                            │
@@ -59,7 +59,7 @@ The generation pipeline has four steps:
 |---|---|
 | Node.js 18+ | For the frontend |
 | Python 3.11+ | For the backend |
-| Google Cloud project | With **Vertex AI API enabled** and the Cloud Run service account granted the **Vertex AI User** IAM role |
+| Google Cloud project | With Cloud Run for hosting the backend |
 | Firebase project | With Google Auth enabled and a service account key |
 
 ---
@@ -90,16 +90,11 @@ pip install -r requirements.txt
 Create `backend/.env`:
 
 ```env
+GOOGLE_API_KEY=your_gemini_api_key
 FIREBASE_SERVICE_ACCOUNT_PATH=../serviceAccountKey.json
 ```
 
 Place your Firebase service account JSON at the path above (or update the path).
-
-Authenticate with Google Cloud for local development (one-time):
-
-```bash
-gcloud auth application-default login
-```
 
 ### 3. Frontend
 
@@ -165,7 +160,7 @@ Follow these steps to test the full generation pipeline end-to-end:
 - Expected: Character design images stream in one by one via SSE
 - Each character card should show a manga-style reference sheet
 
-> **Note:** This step requires Vertex AI API to be enabled on your Google Cloud project. The backend uses Application Default Credentials — run `gcloud auth application-default login` locally.
+> **Note:** This step requires a valid `GOOGLE_API_KEY` in `backend/.env` with access to Gemini image generation models.
 
 ### Step 4 — Generate panels (Storyboard step)
 - Click **Generate Panels**
