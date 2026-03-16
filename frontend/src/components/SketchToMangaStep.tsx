@@ -339,9 +339,9 @@ export default function SketchToMangaStep() {
   };
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 49px)" }}>
+    <div className="flex flex-col md:flex-row md:h-[calc(100vh-49px)]">
       {/* Left sidebar */}
-      <div className="w-80 border-r border-gray-800 p-4 overflow-y-auto flex-shrink-0 fade-up flex flex-col">
+      <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-800 p-4 overflow-y-auto md:flex-shrink-0 fade-up flex flex-col">
         <div className="mb-4">
           <h2
             className="text-xl font-black"
@@ -381,7 +381,7 @@ export default function SketchToMangaStep() {
 
         {/* Sketch thumbnails */}
         {sketches.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 gap-2 mb-4">
             {sketches.map((sketch) => (
               <div key={sketch.id} className="relative group">
                 <img
@@ -567,7 +567,7 @@ export default function SketchToMangaStep() {
       </div>
 
       {/* Right canvas area */}
-      <div className="flex-1 screentone overflow-y-auto p-8">
+      <div className="flex-1 screentone overflow-y-auto p-4 md:p-8">
         {convertedImages.length === 0 &&
         extractedCharacters.length === 0 &&
         setteiSheets.length === 0 ? (
@@ -577,7 +577,7 @@ export default function SketchToMangaStep() {
               style={{ animationDelay: "0.2s" }}
             >
               <div
-                className="text-8xl font-black opacity-5 mb-4"
+                className="text-6xl md:text-8xl font-black opacity-5 mb-4"
                 style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
               >
                 {"\u30B9\u30B1\u30C3\u30C1"}
@@ -671,11 +671,11 @@ export default function SketchToMangaStep() {
                     )}
 
                     <div
-                      className={`flex gap-4 ${showComparison === i ? "" : "justify-center"}`}
+                      className={`flex gap-4 ${showComparison === i ? "flex-col sm:flex-row" : "justify-center"}`}
                     >
                       {/* Original sketch (comparison mode) */}
                       {showComparison === i && sketches[i] && (
-                        <div className="flex-1 max-w-sm">
+                        <div className="flex-1 sm:max-w-sm">
                           <div className="text-[10px] text-gray-600 mb-1 uppercase tracking-widest text-center">
                             Original
                           </div>
@@ -691,7 +691,7 @@ export default function SketchToMangaStep() {
                       <div
                         className={
                           showComparison === i
-                            ? "flex-1 max-w-sm"
+                            ? "flex-1 sm:max-w-sm"
                             : "w-full max-w-lg"
                         }
                       >

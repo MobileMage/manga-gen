@@ -16,11 +16,11 @@ export default function TopBar() {
 
   return (
     <div
-      className="border-b border-gray-800 px-6 py-3 flex items-center justify-between"
+      className="border-b border-gray-800 px-3 sm:px-6 py-3 flex items-center justify-between"
       style={{ backdropFilter: "blur(12px)", background: "rgba(0,0,0,0.8)" }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <div
           className="text-xl font-black tracking-tight"
           style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
@@ -28,34 +28,36 @@ export default function TopBar() {
           <span className="text-red-500">漫</span>
           <span className="text-white">enpitsu</span>
         </div>
-        <div className="text-gray-600 text-xs">v0.2</div>
+        <div className="hidden sm:block text-gray-600 text-xs">v0.2</div>
       </div>
 
       {/* Center: Mode toggle + Step navigation */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Mode toggle */}
         <div className="flex items-center border border-gray-700 rounded-lg overflow-hidden">
           <button
             onClick={() => setMode("story")}
-            className={`px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`px-2 sm:px-3 py-1.5 text-xs font-medium transition-all ${
               mode === "story"
                 ? "bg-red-500 text-white"
                 : "text-gray-400 hover:text-white hover:bg-gray-800"
             }`}
             style={{ fontFamily: "var(--font-space-mono), monospace" }}
           >
-            STORY
+            <span className="sm:hidden">S</span>
+            <span className="hidden sm:inline">STORY</span>
           </button>
           <button
             onClick={() => setMode("sketch")}
-            className={`px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`px-2 sm:px-3 py-1.5 text-xs font-medium transition-all ${
               mode === "sketch"
                 ? "bg-red-500 text-white"
                 : "text-gray-400 hover:text-white hover:bg-gray-800"
             }`}
             style={{ fontFamily: "var(--font-space-mono), monospace" }}
           >
-            SKETCH
+            <span className="sm:hidden">K</span>
+            <span className="hidden sm:inline">SKETCH</span>
           </button>
         </div>
 
@@ -75,7 +77,7 @@ export default function TopBar() {
                     if (!isEnabled) return;
                     setCurrentStep(s.id);
                   }}
-                  className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                  className={`px-2 sm:px-3 py-1.5 rounded text-xs font-medium transition-all ${
                     isActive
                       ? "bg-red-500 text-white"
                       : isCompleted
@@ -84,7 +86,7 @@ export default function TopBar() {
                   }`}
                   style={{ fontFamily: "var(--font-space-mono), monospace" }}
                 >
-                  {String(i + 1).padStart(2, "0")}. {s.label}
+                  {String(i + 1).padStart(2, "0")}<span className="hidden sm:inline">. {s.label}</span>
                 </button>
               );
             })}
@@ -93,7 +95,7 @@ export default function TopBar() {
       </div>
 
       {/* Right: Auto badge + User */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {autoMode && (
           <div className="flex items-center gap-2">
             <span
@@ -108,19 +110,23 @@ export default function TopBar() {
             </span>
             <button
               onClick={() => setAutoPaused(!autoPaused)}
-              className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+              className="hidden sm:block text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
               style={{ fontFamily: "var(--font-space-mono), monospace" }}
             >
               {autoPaused ? "RESUME" : "PAUSE"}
             </button>
           </div>
         )}
-        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs text-gray-400">
-          {user?.email?.charAt(0).toUpperCase() ?? "?"}
-        </div>
         <button
           onClick={signOut}
-          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          title="Sign out"
+          className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 hover:border-red-500/50 flex items-center justify-center text-xs text-gray-400 transition-colors"
+        >
+          {user?.email?.charAt(0).toUpperCase() ?? "?"}
+        </button>
+        <button
+          onClick={signOut}
+          className="hidden sm:block text-xs text-gray-500 hover:text-gray-300 transition-colors"
           style={{ fontFamily: "var(--font-space-mono), monospace" }}
         >
           LOGOUT

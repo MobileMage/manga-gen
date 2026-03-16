@@ -123,9 +123,9 @@ export default function CharactersStep() {
     );
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 49px)" }}>
+    <div className="flex flex-col md:flex-row md:h-[calc(100vh-49px)]">
       {/* Left panel */}
-      <div className="w-96 border-r border-gray-800 p-6 overflow-y-auto flex-shrink-0 fade-up">
+      <div className="w-full md:w-96 border-b md:border-b-0 md:border-r border-gray-800 p-4 md:p-6 overflow-y-auto md:flex-shrink-0 fade-up">
         <div className="mb-6">
           <div
             className="text-xs text-gray-500 uppercase tracking-widest mb-1"
@@ -230,7 +230,7 @@ export default function CharactersStep() {
                   [selectedCharacter]: e.target.value,
                 }))
               }
-              className="w-full h-28 bg-gray-900 border-2 border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 resize-none focus:border-red-500 transition-colors"
+              className="w-full h-20 md:h-28 bg-gray-900 border-2 border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 resize-none focus:border-red-500 transition-colors"
             />
           </div>
         )}
@@ -260,7 +260,7 @@ export default function CharactersStep() {
       </div>
 
       {/* Right preview area */}
-      <div className="flex-1 screentone flex flex-col items-center justify-center p-8 overflow-y-auto">
+      <div className="flex-1 screentone flex flex-col items-center justify-center p-6 md:p-8 overflow-y-auto min-h-64 md:min-h-0">
         {generatingSheets && !selectedSheet?.imageDataUrl ? (
           /* Generating state */
           <div className="text-center fade-up">
@@ -270,7 +270,7 @@ export default function CharactersStep() {
               ))}
             </div>
             <div
-              className="text-6xl font-black animate-pulse-kanji"
+              className="text-5xl md:text-6xl font-black animate-pulse-kanji"
               style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
             >
               設定
@@ -285,7 +285,7 @@ export default function CharactersStep() {
             <img
               src={selectedSheet.imageDataUrl}
               alt={`${selectedCharacter} settei sheet`}
-              className="w-full rounded-lg border border-gray-800 mb-4"
+              className="w-full max-h-[55vh] md:max-h-none object-contain rounded-lg border border-gray-800 mb-4"
             />
 
             {/* Thumbnail strip */}
@@ -318,7 +318,7 @@ export default function CharactersStep() {
             style={{ animationDelay: "0.2s" }}
           >
             <div
-              className="text-8xl font-black opacity-5 mb-4"
+              className="text-6xl md:text-8xl font-black opacity-5 mb-4"
               style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
             >
               設定

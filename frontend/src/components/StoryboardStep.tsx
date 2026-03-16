@@ -110,9 +110,9 @@ export default function StoryboardStep() {
   const selectedPageScript = currentPage ?? null;
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 49px)" }}>
+    <div className="flex flex-col md:flex-row md:h-[calc(100vh-49px)]">
       {/* Left sidebar */}
-      <div className="w-64 border-r border-gray-800 p-4 overflow-y-auto flex-shrink-0 fade-up flex flex-col">
+      <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-gray-800 p-4 overflow-y-auto md:flex-shrink-0 fade-up flex flex-col">
         <div className="mb-4">
           <div
             className="text-xs text-gray-500 uppercase tracking-widest mb-1"
@@ -132,7 +132,7 @@ export default function StoryboardStep() {
         </div>
 
         {/* Page list */}
-        <div className="space-y-2 mb-4 flex-1 overflow-y-auto">
+        <div className="flex gap-2 overflow-x-auto md:flex-col md:space-y-2 md:overflow-x-visible mb-4 md:flex-1 md:overflow-y-auto pb-2 md:pb-0">
           {pages.map((page) => {
             const isActive = page.page_number === selectedPage;
             const img = pageImages.get(page.page_number);
@@ -142,7 +142,7 @@ export default function StoryboardStep() {
               <button
                 key={page.page_number}
                 onClick={() => setSelectedPage(page.page_number)}
-                className={`w-full text-left p-2.5 rounded-lg border-2 transition-all ${
+                className={`flex-shrink-0 md:flex-shrink md:w-full text-left p-2.5 rounded-lg border-2 transition-all ${
                   isActive
                     ? "border-red-500 bg-red-500/5"
                     : "border-gray-800 hover:border-gray-600"
@@ -214,7 +214,7 @@ export default function StoryboardStep() {
       </div>
 
       {/* Right canvas area */}
-      <div className="flex-1 screentone flex flex-col items-center justify-center p-8 overflow-y-auto">
+      <div className="flex-1 screentone flex flex-col items-center justify-center p-4 md:p-8 overflow-y-auto min-h-64 md:min-h-0">
         {!currentPage ? (
           <div className="text-gray-600 text-sm">No pages available</div>
         ) : pageImages.size === 0 && !generatingPages ? (
@@ -224,7 +224,7 @@ export default function StoryboardStep() {
             style={{ animationDelay: "0.2s" }}
           >
             <div
-              className="text-8xl font-black opacity-5 mb-4"
+              className="text-6xl md:text-8xl font-black opacity-5 mb-4"
               style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
             >
               {"\u30B3\u30DE"}
@@ -239,7 +239,7 @@ export default function StoryboardStep() {
           <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
             {/* Manga page */}
             <div
-              className="bg-white rounded shadow-2xl w-full overflow-hidden"
+              className="bg-white rounded shadow-2xl w-full overflow-hidden max-h-[60vh] md:max-h-none"
               style={{ aspectRatio: "2/3" }}
             >
               {(() => {

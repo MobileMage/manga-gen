@@ -112,7 +112,7 @@ export default function ConceptPage() {
 
   if (currentStep !== "concept") {
     return (
-      <div className="flex" style={{ height: "calc(100vh - 49px)" }}>
+      <div className="flex flex-col md:flex-row md:h-[calc(100vh-49px)]">
         <div className="flex-1 screentone flex items-center justify-center p-8">
           <div className="text-gray-600 text-sm">
             Step {currentStep} — coming soon
@@ -123,9 +123,9 @@ export default function ConceptPage() {
   }
 
   return (
-    <div className="flex" style={{ height: "calc(100vh - 49px)" }}>
+    <div className="flex flex-col md:flex-row md:h-[calc(100vh-49px)]">
       {/* Left panel */}
-      <div className="w-96 border-r border-gray-800 p-6 overflow-y-auto flex-shrink-0 fade-up">
+      <div className="w-full md:w-96 border-b md:border-b-0 md:border-r border-gray-800 p-4 md:p-6 overflow-y-auto md:flex-shrink-0 fade-up">
         <div className="mb-6">
           <div
             className="text-xs text-gray-500 uppercase tracking-widest mb-1"
@@ -197,7 +197,7 @@ export default function ConceptPage() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="A high school student discovers they can pause time, but each pause ages them by one year..."
-            className="w-full h-36 bg-gray-900 border-2 border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 resize-none focus:border-red-500 transition-colors"
+            className="w-full h-28 md:h-36 bg-gray-900 border-2 border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-600 resize-none focus:border-red-500 transition-colors"
           />
           <div className="flex justify-between text-xs mt-1">
             {prompt.trim().length > 0 && prompt.trim().length < MIN_PROMPT_LENGTH ? (
@@ -252,7 +252,7 @@ export default function ConceptPage() {
       </div>
 
       {/* Right preview area */}
-      <div className="flex-1 screentone flex items-center justify-center p-8 overflow-y-auto">
+      <div className="flex-1 screentone flex items-center justify-center p-6 md:p-8 overflow-y-auto min-h-64 md:min-h-0">
         {generating ? (
           <div className="text-center fade-up">
             <div className="speed-lines mb-6">
@@ -261,7 +261,7 @@ export default function ConceptPage() {
               ))}
             </div>
             <div
-              className="text-6xl font-black animate-pulse-kanji"
+              className="text-5xl md:text-6xl font-black animate-pulse-kanji"
               style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
             >
               執筆中
@@ -314,7 +314,7 @@ export default function ConceptPage() {
             style={{ animationDelay: "0.2s" }}
           >
             <div
-              className="text-8xl font-black opacity-5 mb-4"
+              className="text-6xl md:text-8xl font-black opacity-5 mb-4"
               style={{ fontFamily: "var(--font-noto-sans-jp), sans-serif" }}
             >
               漫画

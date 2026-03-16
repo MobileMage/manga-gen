@@ -68,15 +68,15 @@ export default function ReaderStep() {
       : `Page ${currentVisiblePage} of ${totalPages}`;
 
   return (
-    <div className="flex flex-col" style={{ height: "calc(100vh - 49px)" }}>
+    <div className="flex flex-col md:h-[calc(100vh-49px)]">
       {/* Sticky toolbar */}
       <div
-        className="sticky top-0 z-10 border-b border-gray-800 px-6 py-2.5 flex items-center justify-between flex-shrink-0"
+        className="sticky top-0 z-10 border-b border-gray-800 px-3 sm:px-6 py-2.5 flex items-center justify-between flex-shrink-0"
         style={{ backdropFilter: "blur(12px)", background: "rgba(0,0,0,0.8)" }}
       >
         {/* Left: label */}
         <span
-          className="text-xs text-gray-500 uppercase tracking-widest"
+          className="hidden sm:inline text-xs text-gray-500 uppercase tracking-widest"
           style={{ fontFamily: "var(--font-space-mono), monospace" }}
         >
           Reading Mode
@@ -113,7 +113,7 @@ export default function ReaderStep() {
           <div
             ref={coverRef}
             data-page="cover"
-            className="bg-white rounded shadow-2xl w-full max-w-lg flex flex-col items-center justify-center px-8"
+            className="bg-white rounded shadow-2xl w-full max-w-lg md:max-w-xl flex flex-col items-center justify-center px-8"
             style={{ aspectRatio: "2/3" }}
           >
             {story && (
@@ -152,7 +152,7 @@ export default function ReaderStep() {
                   if (el) pageRefs.current.set(String(page.page_number), el);
                 }}
                 data-page={page.page_number}
-                className="bg-white rounded shadow-2xl w-full max-w-lg overflow-hidden"
+                className="bg-white rounded shadow-2xl w-full max-w-lg md:max-w-xl overflow-hidden"
                 style={{ aspectRatio: "2/3" }}
               >
                 {img?.status === "complete" && img.imageDataUrl ? (
