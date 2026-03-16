@@ -186,6 +186,11 @@ export function useAutoMode() {
           }
           setGeneratingPages(true);
 
+          // Track completion locally — React state is stale inside the closure
+          let completedCount = 0;
+          let anyError = false;
+          const expectedCount = story.pages.length;
+
           try {
             await generatePages({
               story,
@@ -200,9 +205,11 @@ export function useAutoMode() {
                     imageDataUrl,
                     errorMessage: undefined,
                   });
+                  completedCount++;
                 },
                 onPageError: (pageNumber, errorMessage) => {
                   updatePageImage(pageNumber, { status: "error", errorMessage });
+                  anyError = true;
                 },
                 onPageGenerating: (pageNumber) => {
                   updatePageImage(pageNumber, { status: "generating" });
@@ -210,10 +217,18 @@ export function useAutoMode() {
               },
             });
 
-            completeStep("storyboard");
-            setCurrentStep("reader");
-            setAutoMode(false);
-            autoStepRef.current = "done";
+            // Only advance to reader if every page actually completed.
+            // A dropped SSE connection (proxy timeout during retry backoff) resolves
+            // the stream without error events, so we also guard on completedCount.
+            if (!anyError && completedCount === expectedCount) {
+              completeStep("storyboard");
+              setCurrentStep("reader");
+              setAutoMode(false);
+              autoStepRef.current = "done";
+            } else {
+              // Partial completion or connection drop — pause so the user can retry
+              setAutoPaused(true);
+            }
           } finally {
             setGeneratingPages(false);
           }
