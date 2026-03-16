@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 import logging
@@ -50,7 +51,13 @@ async def create_character_sheets(
     async def event_stream():
         for character in request.characters:
             try:
-                name, png_bytes = await generate_character_sheet(character, request.style_hint)
+                task = asyncio.create_task(generate_character_sheet(character, request.style_hint))
+                while True:
+                    try:
+                        name, png_bytes = await asyncio.wait_for(asyncio.shield(task), timeout=15.0)
+                        break
+                    except asyncio.TimeoutError:
+                        yield ": keep-alive\n\n"
                 b64 = base64.b64encode(png_bytes).decode("ascii")
                 event = CharacterSheetEvent(
                     character_name=name,
@@ -113,7 +120,7 @@ async def create_panels_stream(
                 panel_key = f"p{page.page_number}_n{panel.panel_number}"
                 aspect_ratio = request.panel_aspect_ratios.get(panel_key, "3:4")
                 try:
-                    png_bytes = await generate_panel(
+                    task = asyncio.create_task(generate_panel(
                         panel=panel,
                         page_number=page.page_number,
                         character_sheets=character_sheet_bytes,
@@ -122,7 +129,13 @@ async def create_panels_stream(
                         genre=request.genre,
                         style_prompt=request.style_prompt,
                         aspect_ratio=aspect_ratio,
-                    )
+                    ))
+                    while True:
+                        try:
+                            png_bytes = await asyncio.wait_for(asyncio.shield(task), timeout=15.0)
+                            break
+                        except asyncio.TimeoutError:
+                            yield ": keep-alive\n\n"
                     b64 = base64.b64encode(png_bytes).decode("ascii")
                     event = PanelGenerationEvent(
                         page_number=page.page_number,
@@ -185,14 +198,20 @@ async def create_pages_stream(
 
         for page in request.pages:
             try:
-                png_bytes = await generate_page(
+                task = asyncio.create_task(generate_page(
                     page=page,
                     character_sheets=character_sheet_bytes,
                     character_descriptions=character_descriptions,
                     previous_page_bytes=previous_page_bytes,
                     genre=request.genre,
                     style_prompt=request.style_prompt,
-                )
+                ))
+                while True:
+                    try:
+                        png_bytes = await asyncio.wait_for(asyncio.shield(task), timeout=15.0)
+                        break
+                    except asyncio.TimeoutError:
+                        yield ": keep-alive\n\n"
                 b64 = base64.b64encode(png_bytes).decode("ascii")
                 event = PageGenerationEvent(
                     page_number=page.page_number,
@@ -262,10 +281,16 @@ async def create_sketch_to_manga(
         # ── Phase 1: Extract ──
         if request.auto_extract:
             try:
-                extract_result = await extract_characters_from_sketches(
+                task = asyncio.create_task(extract_characters_from_sketches(
                     sketch_images=sketch_bytes_list,
                     genre=request.genre,
-                )
+                ))
+                while True:
+                    try:
+                        extract_result = await asyncio.wait_for(asyncio.shield(task), timeout=15.0)
+                        break
+                    except asyncio.TimeoutError:
+                        yield ": keep-alive\n\n"
                 extracted_characters = extract_result.characters
                 for char in extracted_characters:
                     character_descriptions[char.name] = char.visual_description
@@ -306,11 +331,17 @@ async def create_sketch_to_manga(
 
         for char in extracted_chars_needing_settei:
             try:
-                _, sheet_bytes = await generate_character_sheet_from_sketches(
+                task = asyncio.create_task(generate_character_sheet_from_sketches(
                     character=char,
                     style_hint=request.style_hint,
                     sketch_images=sketch_bytes_list,
-                )
+                ))
+                while True:
+                    try:
+                        _, sheet_bytes = await asyncio.wait_for(asyncio.shield(task), timeout=15.0)
+                        break
+                    except asyncio.TimeoutError:
+                        yield ": keep-alive\n\n"
                 character_sheet_bytes[char.name] = sheet_bytes
                 b64 = base64.b64encode(sheet_bytes).decode("ascii")
                 event = SketchToMangaStreamEvent(
@@ -335,7 +366,7 @@ async def create_sketch_to_manga(
 
         for i, sketch_bytes in enumerate(sketch_bytes_list):
             try:
-                png_bytes = await sketch_to_manga(
+                task = asyncio.create_task(sketch_to_manga(
                     sketch_bytes=sketch_bytes,
                     style_hint=request.style_hint,
                     genre=request.genre,
@@ -344,7 +375,13 @@ async def create_sketch_to_manga(
                     previous_page_bytes=previous_page_bytes,
                     include_dialogue=request.include_dialogue,
                     dialogue_hints=request.dialogue_hints,
-                )
+                ))
+                while True:
+                    try:
+                        png_bytes = await asyncio.wait_for(asyncio.shield(task), timeout=15.0)
+                        break
+                    except asyncio.TimeoutError:
+                        yield ": keep-alive\n\n"
                 b64 = base64.b64encode(png_bytes).decode("ascii")
                 event = SketchToMangaStreamEvent(
                     phase="convert",
