@@ -1,7 +1,5 @@
 # 漫 enpitsu — AI Manga Generator
 
-**[Live Demo → https://manga-gen.onrender.com](https://manga-gen.onrender.com)**
-
 > **Hackathon category:** Creative Storyteller — Gemini Live Agent Challenge
 
 enpitsu (鉛筆, "pencil") is an AI-powered manga creation tool. Give it a genre and a prompt, and it generates a full manga: story, character design sheets, and panel-by-panel artwork — all streamed live in your browser.
