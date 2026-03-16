@@ -5,7 +5,7 @@ FastAPI backend for the enpitsu AI manga generator. Handles story generation, ch
 ## Tech
 
 - **Framework**: FastAPI + Uvicorn
-- **AI**: Google Gemini API (`google-genai`) — text and image generation
+- **AI**: Google Gemini via Vertex AI (`google-genai`) — text and image generation
 - **Auth**: Firebase Admin SDK (verifies Firebase ID tokens)
 - **Config**: python-dotenv
 
@@ -25,11 +25,16 @@ pip install -r requirements.txt
 Create `.env` in this directory:
 
 ```env
-GOOGLE_API_KEY=your_gemini_api_key_here
 FIREBASE_SERVICE_ACCOUNT_PATH=../serviceAccountKey.json
 ```
 
-> The Gemini API key must have **billing enabled** on the associated Google Cloud project. Image generation models (`gemini-2.5-flash-preview-image`, etc.) are not available on the free tier.
+Authentication to Vertex AI uses **Application Default Credentials (ADC)**. Run once locally:
+
+```bash
+gcloud auth application-default login
+```
+
+On Cloud Run, the attached service account is used automatically — no key needed.
 
 ## Running
 

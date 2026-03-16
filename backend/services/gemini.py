@@ -1,5 +1,6 @@
+import asyncio
 import logging
-import os
+import random
 from google import genai
 from google.genai.types import GenerateContentConfig, ImageConfig
 from google.genai import types
@@ -10,14 +11,39 @@ logger = logging.getLogger("manga-gen.gemini")
 _client: genai.Client | None = None
 
 
+def _is_rate_limit(e: Exception) -> bool:
+    s = str(e)
+    return "429" in s or "RESOURCE_EXHAUSTED" in s
+
+
+async def _with_retry(make_coro, label: str, max_retries: int = 4, base_delay: float = 20.0):
+    """Retry an async Gemini call on 429 RESOURCE_EXHAUSTED with exponential backoff + jitter.
+    Non-429 errors are re-raised immediately so the model fallback chain can proceed.
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return await make_coro()
+        except Exception as e:
+            if _is_rate_limit(e) and attempt < max_retries:
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 3)
+                logger.warning(
+                    f"[gemini] {label} — rate limited (429), "
+                    f"retry {attempt + 1}/{max_retries} in {delay:.1f}s"
+                )
+                await asyncio.sleep(delay)
+            else:
+                raise
+
+
 def _get_client() -> genai.Client:
     global _client
     if _client is None:
-        api_key = os.environ.get("GOOGLE_API_KEY")
-        if not api_key:
-            raise RuntimeError("GOOGLE_API_KEY environment variable is not set")
-        logger.info("[gemini] Initializing client")
-        _client = genai.Client(api_key=api_key)
+        logger.info("[gemini] Initializing Vertex AI client")
+        _client = genai.Client(
+            vertexai=True,
+            project="enpitsu-6649e",
+            location="us-central1",
+        )
     return _client
 
 
@@ -45,14 +71,17 @@ Create a complete manga script with {request.page_count} pages."""
 
     logger.info(f"[gemini] Calling gemini-2.5-flash with {len(user_prompt)} char prompt")
 
-    response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=user_prompt,
-        config=genai.types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            response_mime_type="application/json",
-            response_schema=StoryResponse,
+    response = await _with_retry(
+        lambda: client.aio.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=user_prompt,
+            config=genai.types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                response_mime_type="application/json",
+                response_schema=StoryResponse,
+            ),
         ),
+        label="generate_story",
     )
 
     logger.info(f"[gemini] Response received, text length={len(response.text)}")
@@ -94,14 +123,17 @@ async def extract_characters_from_sketches(
     ))
 
     logger.info(f"[gemini] Extracting characters from {total} sketches")
-    response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=contents,
-        config=genai.types.GenerateContentConfig(
-            system_instruction=CHARACTER_EXTRACT_SYSTEM_PROMPT,
-            response_mime_type="application/json",
-            response_schema=CharacterExtractResponse,
+    response = await _with_retry(
+        lambda: client.aio.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=genai.types.GenerateContentConfig(
+                system_instruction=CHARACTER_EXTRACT_SYSTEM_PROMPT,
+                response_mime_type="application/json",
+                response_schema=CharacterExtractResponse,
+            ),
         ),
+        label="extract_characters",
     )
 
     result = CharacterExtractResponse.model_validate_json(response.text)
@@ -142,14 +174,17 @@ Layout the sheet as follows:
     for model_name in IMAGE_MODELS:
         try:
             logger.info(f"[gemini] Generating settei for {character.name!r} with {model_name}")
-            response = await client.aio.models.generate_content(
-                model=model_name,
-                contents=user_prompt,
-                config=GenerateContentConfig(
-                    system_instruction=SETTEI_SYSTEM_PROMPT,
-                    response_modalities=["IMAGE", "TEXT"],
-                    image_config=ImageConfig(),
+            response = await _with_retry(
+                lambda m=model_name: client.aio.models.generate_content(
+                    model=m,
+                    contents=user_prompt,
+                    config=GenerateContentConfig(
+                        system_instruction=SETTEI_SYSTEM_PROMPT,
+                        response_modalities=["IMAGE", "TEXT"],
+                        image_config=ImageConfig(),
+                    ),
                 ),
+                label=f"settei/{character.name}/{model_name}",
             )
 
             # Extract image bytes from response
@@ -209,14 +244,17 @@ Layout the sheet as follows:
     for model_name in IMAGE_MODELS:
         try:
             logger.info(f"[gemini] Generating sketch-based settei for {character.name!r} with {model_name}")
-            response = await client.aio.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=GenerateContentConfig(
-                    system_instruction=SETTEI_SYSTEM_PROMPT,
-                    response_modalities=["IMAGE", "TEXT"],
-                    image_config=ImageConfig(),
+            response = await _with_retry(
+                lambda m=model_name: client.aio.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=GenerateContentConfig(
+                        system_instruction=SETTEI_SYSTEM_PROMPT,
+                        response_modalities=["IMAGE", "TEXT"],
+                        image_config=ImageConfig(),
+                    ),
                 ),
+                label=f"sketch-settei/{character.name}/{model_name}",
             )
 
             for part in response.candidates[0].content.parts:
@@ -333,14 +371,17 @@ CRITICAL RULES:
     for model_name in IMAGE_MODELS:
         try:
             logger.info(f"[gemini] Generating panel p{page_number}_n{panel.panel_number} with {model_name}")
-            response = await client.aio.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=GenerateContentConfig(
-                    system_instruction=PANEL_SYSTEM_PROMPT,
-                    response_modalities=["IMAGE", "TEXT"],
-                    image_config=ImageConfig(aspect_ratio=aspect_ratio),
+            response = await _with_retry(
+                lambda m=model_name: client.aio.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=GenerateContentConfig(
+                        system_instruction=PANEL_SYSTEM_PROMPT,
+                        response_modalities=["IMAGE", "TEXT"],
+                        image_config=ImageConfig(aspect_ratio=aspect_ratio),
+                    ),
                 ),
+                label=f"panel/p{page_number}_n{panel.panel_number}/{model_name}",
             )
 
             for part in response.candidates[0].content.parts:
@@ -463,14 +504,17 @@ CRITICAL RULES:
     for model_name in IMAGE_MODELS:
         try:
             logger.info(f"[gemini] Generating page {page.page_number} with {model_name}")
-            response = await client.aio.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=GenerateContentConfig(
-                    system_instruction=PAGE_SYSTEM_PROMPT,
-                    response_modalities=["IMAGE", "TEXT"],
-                    image_config=ImageConfig(aspect_ratio="2:3"),
+            response = await _with_retry(
+                lambda m=model_name: client.aio.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=GenerateContentConfig(
+                        system_instruction=PAGE_SYSTEM_PROMPT,
+                        response_modalities=["IMAGE", "TEXT"],
+                        image_config=ImageConfig(aspect_ratio="2:3"),
+                    ),
                 ),
+                label=f"page/{page.page_number}/{model_name}",
             )
 
             for part in response.candidates[0].content.parts:
@@ -582,14 +626,17 @@ RULES:
     for model_name in IMAGE_MODELS:
         try:
             logger.info(f"[gemini] Converting sketch to manga with {model_name}")
-            response = await client.aio.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=GenerateContentConfig(
-                    system_instruction=SKETCH_TO_MANGA_SYSTEM_PROMPT,
-                    response_modalities=["IMAGE", "TEXT"],
-                    image_config=ImageConfig(aspect_ratio="2:3"),
+            response = await _with_retry(
+                lambda m=model_name: client.aio.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=GenerateContentConfig(
+                        system_instruction=SKETCH_TO_MANGA_SYSTEM_PROMPT,
+                        response_modalities=["IMAGE", "TEXT"],
+                        image_config=ImageConfig(aspect_ratio="2:3"),
+                    ),
                 ),
+                label=f"sketch-to-manga/{model_name}",
             )
 
             for part in response.candidates[0].content.parts:
