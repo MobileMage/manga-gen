@@ -2,4 +2,5 @@ fastapi
 uvicorn[standard]
 firebase-admin
 google-genai
+google-auth[compute-engine]
 python-dotenv
